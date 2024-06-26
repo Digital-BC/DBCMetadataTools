@@ -6,14 +6,14 @@ Pulls title and a URL field from the [DigitalBC](https://info.digitalbc.ca) impl
 
 
 # api2csvFull.py
-Pulls all records a fields from the [DigitalBC](https://info.digitalbc.ca) implementation of the [Supplejack API](https://github.com/DigitalNZ/supplejack_api),for analysis in a .csv. 
+Pulls all records a fields from the [DigitalBC](https://info.digitalbc.ca) implementation of the [Supplejack API](https://github.com/DigitalNZ/supplejack_api), for analysis in a .csv. 
 
 Really, just a more usefuL and bloated version of `api2csv.py`
 
 
 
 # thumbchecker.py
-Using a thumbnail_url csv pulled from [DigitalBC](https://info.digitalbc.ca) implementation of the [Supplejack API](https://github.com/DigitalNZ/supplejack_api), via `api2csv.py` checks for the presence of a thumbnail (indicated by the presence a 200 status code - and an image render of ~1mb)
+Using a .csv file with the thumbnail_url field pulled from the [DigitalBC](https://info.digitalbc.ca) implementation of the [Supplejack API](https://github.com/DigitalNZ/supplejack_api), via `api2csv.py` checks for the presence of a thumbnail (indicated by the presence of a 200 status code - and an image render of ~1mb)
 
 Assumes a csv with a "Thumbnail_URL" column with one url per line
 
@@ -23,7 +23,7 @@ Assumes a csv with a "Thumbnail_URL" column with one url per line
 Using the `internal_identifier` field from the [DigitalBC](https://info.digitalbc.ca) implementation of the [Supplejack API](https://github.com/DigitalNZ/supplejack_api), 
 batch extracts the the `_id` from an API record in Mongo. Record this info for a batch deletion in Solr. 
 
-Extract multiple the `internal_identifier` fields from the API with a refined seacrh, or by using [api2csv](https://github.com/Digital-BC/api2csvFull)
+Extract multiple the `internal_identifier` fields from the API with a refined seacrh, or by using `api2csv.py`
 
 example: 
 
