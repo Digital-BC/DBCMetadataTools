@@ -1,5 +1,5 @@
 # **DBCMetadataTools**
-A collection of metadata tools for DigitalBC
+A collection of metadata tools for DigitalBC, used to extract, verify, delete . . . 
 
 # api2csv.py
 Pulls title and a URL field from the [DigitalBC](https://info.digitalbc.ca) implementation of the [Supplejack API](https://github.com/DigitalNZ/supplejack_api), and places in a csv file. Extract only the item types (Categories) you specify
