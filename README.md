@@ -8,7 +8,7 @@ Pulls title and a URL field from the [DigitalBC](https://info.digitalbc.ca) impl
 # api2csvFull.py
 Pulls all records a fields from the [DigitalBC](https://info.digitalbc.ca) implementation of the [Supplejack API](https://github.com/DigitalNZ/supplejack_api), for analysis in a .csv. 
 
-Really, just a more usefuL and bloated version of `api2csv.py`
+Really, just a more useful and bloated version of `api2csv.py`
 
 
 
