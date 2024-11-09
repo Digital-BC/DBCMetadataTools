@@ -1,0 +1,130 @@
+import csv
+import time
+import random
+import requests
+import boto3
+import logging
+from urllib.parse import urlparse
+from pathlib import Path
+
+# Setup logging to output to both console and a file
+logging.basicConfig(level=logging.INFO, format='%(message)s')
+logger = logging.getLogger()
+
+# File handler for logging to a file
+file_handler = logging.FileHandler('upload_log.txt')
+file_handler.setFormatter(logging.Formatter('%(message)s'))
+logger.addHandler(file_handler)
+
+# Function to download an image from a URL with a user agent
+def download_image(url):
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
+    response = requests.get(url, headers=headers)
+
+    if response.status_code == 200:
+        return response.content
+    else:
+        raise Exception(f"Failed to download image: {response.status_code}")
+
+# Function to upload an image to DigitalOcean Space
+def upload_to_space(image_data, space_name, object_key, s3_client):
+    s3_client.put_object(
+        Bucket=space_name,
+        Key=object_key,
+        Body=image_data,
+        ACL='public-read',
+        ContentType='image/jpeg'  # Adjust if using a different image type
+    )
+
+# Function to load the last processed row from the progress file
+def load_progress(progress_file):
+    try:
+        with open(progress_file, 'r') as file:
+            return int(file.read().strip())
+    except FileNotFoundError:
+        return 0  # Start from the beginning if no progress file exists
+
+# Function to save the current progress to the progress file
+def save_progress(progress_file, counter):
+    with open(progress_file, 'w') as file:
+        file.write(str(counter))
+
+# Main execution
+def main():
+    csv_file = 'file.csv'  # Replace with your CSV file path
+    progress_file = 'progress.txt'  # File to track progress
+    space_name = 'space'  # Replace with your DigitalOcean Space name
+    thumb_folder = 'path'  # Folder path for thumbnails
+    preview_folder = 'path'  # Folder path for preview images
+
+    # Setup S3 Client for DigitalOcean Space
+    s3_client = boto3.client(
+        's3',
+        aws_access_key_id='',
+        aws_secret_access_key='',
+        region_name='region',  # Replace with your region (e.g., nyc3, sfo2)
+        endpoint_url='https://nyc3.digitaloceanspaces.com'  # Adjust for your region
+    )
+
+    # Load progress
+    last_processed = load_progress(progress_file)
+
+    # Prompt after every 'x' records
+    prompt_interval = 500
+
+    with open(csv_file, 'r') as file:
+        reader = csv.DictReader(file)
+        total_count = sum(1 for row in reader)  # Get total number of rows
+        file.seek(0)  # Reset reader to the start of the file
+
+        counter = 1  # Initialize the counter
+        for row in reader:
+            if counter <= last_processed:
+                # Skip rows that have already been processed
+                counter += 1
+                continue
+
+            try:
+                # Process Thumbnail_URL
+                thumb_url = row['Thumbnail_URL']
+                thumb_data = download_image(thumb_url)
+                thumb_filename = Path(urlparse(thumb_url).path).name
+                thumb_object_key = f'{thumb_folder}{thumb_filename}'
+
+                upload_to_space(thumb_data, space_name, thumb_object_key, s3_client)
+                logger.info(f"Thumbnail {counter} of {total_count}: {thumb_filename} successfully uploaded to {thumb_folder}!")
+
+                # Process Preview_image_URL
+                preview_url = row['Preview_Image_URL']
+                preview_data = download_image(preview_url)
+                preview_filename = Path(urlparse(preview_url).path).name
+                preview_object_key = f'{preview_folder}{preview_filename}'
+
+                upload_to_space(preview_data, space_name, preview_object_key, s3_client)
+                logger.info(f"Preview {counter} of {total_count}: {preview_filename} successfully uploaded to {preview_folder}!")
+
+                # Save progress after processing the record
+                save_progress(progress_file, counter)
+
+                # Prompt every 'x' records
+                if counter % prompt_interval == 0:
+                    user_input = input(f"Processed {counter} records. Do you want to continue? (yes/no): ").strip().lower()
+                    if user_input != 'yes':
+                        logger.info(f"Paused after processing {counter} records.")
+                        break  # Exit the loop to stop the process
+
+                counter += 1  # Increment the counter
+
+
+                if counter % 200 == 0:
+                    logger.info(f"Pausing for 25 seconds after processing {counter} records...")
+                    time.sleep(25)
+
+                # Introduce a random sleep between 0.5 to 3 seconds between each record
+                time.sleep(random.uniform(0.3, 5))
+
+            except Exception as e:
+                logger.error(f"An error occurred with URL {row['Thumbnail_URL']} or {row['Preview_Image_URL']}: {e}")
+
+if __name__ == "__main__":
+    main()
