@@ -75,3 +75,20 @@ Then in Solr > Core > Documents (XML)
 ```
  
  Your API results should reflect the deleted items
+
+# CDNsenderStops.py
+Using your csv from `api2csvFull.py` retrieves the thumbnail and preview to send to a CDN of your choosing. Adjust the `prompt_interval = ` to a count of your liking, as the script will save your progress (a great thing when you have thousands of urls to process.)
+
+Console output gos to a file `'upload_log.txt' for error tracking.
+
+Further fine tuning can be accomplished by adjusting the counter, sleep, and random sleep sections, to ease the load at the source repository. 
+```
+                if counter % 200 == 0:
+                    logger.info(f"Pausing for 25 seconds after processing {counter} records...")
+                    time.sleep(25)
+
+                # Introduce a random sleep between 0.5 to 3 seconds between each record
+                time.sleep(random.uniform(0.3, 5))
+```
+
+
